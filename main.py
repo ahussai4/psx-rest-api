@@ -13,7 +13,7 @@ from psx_client import fetch_historical_data, fetch_symbols
 app = FastAPI(
     title="PSX REST API",
     description="A simple REST API for Pakistan Stock Exchange data",
-    version="0.1.0",
+    version="1.0.0",
 )
 
 
