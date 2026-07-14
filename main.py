@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 
-from psx_client import fetch_historical_data
+from psx_client import fetch_historical_data, fetch_symbols
 
 
 app = FastAPI(
@@ -41,6 +41,29 @@ def health_check():
     return {
         "status": "ok",
         "message": "API is healthy",
+    }
+
+@app.get("/symbols")
+def get_symbols(
+    limit: Optional[int] = Query(default=None, ge=1, le=5000),
+):
+    try:
+        symbols = fetch_symbols()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not fetch symbols from PSX: {exc}",
+        )
+
+    total_count = len(symbols)
+
+    if limit is not None:
+        symbols = symbols[:limit]
+
+    return {
+        "total_count": total_count,
+        "returned_count": len(symbols),
+        "data": symbols,
     }
 
 

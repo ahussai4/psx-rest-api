@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 from datetime import date
@@ -114,3 +115,45 @@ def fetch_historical_data(
     df = df.reset_index(drop=True)
 
     return df
+
+def fetch_symbols() -> list[dict]:
+    """
+    Fetch the list of available PSX symbols.
+
+    Each item usually contains:
+        symbol
+        name
+        sectorName
+        isETF
+        isDebt
+    """
+
+    response = requests.get(
+        "https://dps.psx.com.pk/symbols",
+        timeout=30,
+        headers={"User-Agent": "Mozilla/5.0"},
+    )
+
+    response.raise_for_status()
+
+    symbols = response.json()
+
+    cleaned_symbols = []
+
+    for item in symbols:
+        cleaned_symbols.append(
+            {
+                "symbol": item.get("symbol"),
+                "name": item.get("name"),
+                "sector": item.get("sectorName"),
+                "is_etf": item.get("isETF"),
+                "is_debt": item.get("isDebt"),
+            }
+        )
+
+    cleaned_symbols = sorted(
+        cleaned_symbols,
+        key=lambda item: item["symbol"] or "",
+    )
+
+    return cleaned_symbols
