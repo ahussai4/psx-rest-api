@@ -25,6 +25,7 @@ def home():
             "/",
             "/health",
             "/symbols",
+            "/info/{symbol}",
             "/latest/{symbol}",
             "/historical/{symbol}",
             "/download/{symbol}",
@@ -33,6 +34,7 @@ def home():
             "/health",
             "/symbols",
             "/symbols?limit=10",
+            "/info/HBL",
             "/latest/HBL",
             "/historical/HBL",
             "/historical/HBL?limit=5",
@@ -74,6 +76,28 @@ def get_symbols(
         "returned_count": len(symbols),
         "data": symbols,
     }
+
+
+@app.get("/info/{symbol}")
+def get_symbol_info(symbol: str):
+    symbol = symbol.upper().strip()
+
+    try:
+        symbols = fetch_symbols()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not fetch symbols from PSX: {exc}",
+        )
+
+    for item in symbols:
+        if item["symbol"] == symbol:
+            return item
+
+    raise HTTPException(
+        status_code=404,
+        detail=f"No symbol information found for '{symbol}'.",
+    )
 
 
 @app.get("/latest/{symbol}")
