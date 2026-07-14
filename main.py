@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import date
+from io import StringIO
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from psx_client import fetch_historical_data, fetch_symbols
 
@@ -25,6 +27,7 @@ def home():
             "/symbols",
             "/latest/{symbol}",
             "/historical/{symbol}",
+            "/download/{symbol}",
         ],
         "examples": [
             "/health",
@@ -35,8 +38,8 @@ def home():
             "/historical/HBL?limit=5",
             "/historical/HBL?limit=5&order=asc",
             "/historical/HBL?limit=5&order=desc",
-            "/historical/HBL?start=2021-01-01&end=2026-07-13&limit=5&order=desc",
-            "/historical/OGDC?start=2021-01-01&end=2026-07-13&limit=5&order=desc",
+            "/download/HBL",
+            "/download/HBL?start=2021-01-01&end=2026-07-13",
         ],
     }
 
@@ -161,3 +164,51 @@ def get_historical_data(
         "end": df["date"].iloc[0] if order == "desc" else df["date"].iloc[-1],
         "data": df.to_dict(orient="records"),
     }
+
+
+@app.get("/download/{symbol}")
+def download_historical_data(
+    symbol: str,
+    start: Optional[date] = Query(default=None),
+    end: Optional[date] = Query(default=None),
+):
+    if start is not None and end is not None and start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="start date cannot be after end date",
+        )
+
+    try:
+        df = fetch_historical_data(
+            symbol=symbol,
+            start=start,
+            end=end,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not fetch data from PSX: {exc}",
+        )
+
+    if df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No historical data found for symbol '{symbol.upper()}'.",
+        )
+
+    df = df.sort_values("date", ascending=True)
+    df["date"] = df["date"].dt.strftime("%Y-%m-%d")
+
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+
+    filename = f"{symbol.upper()}_historical_data.csv"
+
+    return StreamingResponse(
+        iter([csv_buffer.getvalue()]),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        },
+    )
