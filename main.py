@@ -1,0 +1,107 @@
+from __future__ import annotations
+
+from datetime import date
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Query
+
+from psx_client import fetch_historical_data
+
+
+app = FastAPI(
+    title="PSX REST API",
+    description="A simple REST API for Pakistan Stock Exchange data",
+    version="0.1.0",
+)
+
+
+@app.get("/")
+def home():
+    return {
+        "message": "PSX REST API is running",
+        "available_endpoints": [
+            "/",
+            "/health",
+            "/historical/{symbol}",
+        ],
+        "examples": [
+            "/health",
+            "/historical/HBL",
+            "/historical/HBL?limit=5",
+            "/historical/HBL?limit=5&order=asc",
+            "/historical/HBL?limit=5&order=desc",
+            "/historical/HBL?start=2021-01-01&end=2026-07-13&limit=5&order=desc",
+            "/historical/OGDC?start=2021-01-01&end=2026-07-13&limit=5&order=desc",
+        ],
+    }
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok",
+        "message": "API is healthy",
+    }
+
+
+@app.get("/historical/{symbol}")
+def get_historical_data(
+    symbol: str,
+    start: Optional[date] = Query(default=None),
+    end: Optional[date] = Query(default=None),
+    limit: Optional[int] = Query(default=None, ge=1, le=5000),
+    order: str = Query(default="asc"),
+):
+    order = order.lower().strip()
+
+    if order not in ["asc", "desc"]:
+        raise HTTPException(
+            status_code=400,
+            detail="order must be either 'asc' or 'desc'",
+        )
+
+    if start is not None and end is not None and start > end:
+        raise HTTPException(
+            status_code=400,
+            detail="start date cannot be after end date",
+        )
+
+    try:
+        df = fetch_historical_data(
+            symbol=symbol,
+            start=start,
+            end=end,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not fetch data from PSX: {exc}",
+        )
+
+    if df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No historical data found for symbol '{symbol.upper()}'.",
+        )
+
+    total_count = len(df)
+
+    if order == "desc":
+        df = df.sort_values("date", ascending=False)
+    else:
+        df = df.sort_values("date", ascending=True)
+
+    if limit is not None:
+        df = df.head(limit)
+
+    df["date"] = df["date"].dt.strftime("%Y-%m-%d")
+
+    return {
+        "symbol": symbol.upper(),
+        "total_count": total_count,
+        "returned_count": len(df),
+        "order": order,
+        "start": df["date"].iloc[-1] if order == "desc" else df["date"].iloc[0],
+        "end": df["date"].iloc[0] if order == "desc" else df["date"].iloc[-1],
+        "data": df.to_dict(orient="records"),
+    }
