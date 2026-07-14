@@ -22,10 +22,15 @@ def home():
         "available_endpoints": [
             "/",
             "/health",
+            "/symbols",
+            "/latest/{symbol}",
             "/historical/{symbol}",
         ],
         "examples": [
             "/health",
+            "/symbols",
+            "/symbols?limit=10",
+            "/latest/HBL",
             "/historical/HBL",
             "/historical/HBL?limit=5",
             "/historical/HBL?limit=5&order=asc",
@@ -42,6 +47,7 @@ def health_check():
         "status": "ok",
         "message": "API is healthy",
     }
+
 
 @app.get("/symbols")
 def get_symbols(
@@ -64,6 +70,33 @@ def get_symbols(
         "total_count": total_count,
         "returned_count": len(symbols),
         "data": symbols,
+    }
+
+
+@app.get("/latest/{symbol}")
+def get_latest_data(symbol: str):
+    try:
+        df = fetch_historical_data(symbol=symbol)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Could not fetch data from PSX: {exc}",
+        )
+
+    if df.empty:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No historical data found for symbol '{symbol.upper()}'.",
+        )
+
+    df = df.sort_values("date", ascending=False)
+
+    latest_row = df.iloc[0].copy()
+    latest_row["date"] = latest_row["date"].strftime("%Y-%m-%d")
+
+    return {
+        "symbol": symbol.upper(),
+        "data": latest_row.to_dict(),
     }
 
 
