@@ -23,6 +23,10 @@ https://psx-rest-api.onrender.com/symbols?limit=10
 ```
 
 ```text
+https://psx-rest-api.onrender.com/info/HBL
+```
+
+```text
 https://psx-rest-api.onrender.com/latest/HBL
 ```
 
@@ -38,6 +42,7 @@ https://psx-rest-api.onrender.com/download/HBL
 
 - Fetch historical OHLCV data for PSX symbols
 - List available PSX symbols
+- Fetch basic information about a symbol
 - Fetch the latest available data for a symbol
 - Download historical data as a CSV file
 - Filter historical data by start date and end date
@@ -173,6 +178,32 @@ Example response:
       "is_debt": false
     }
   ]
+}
+```
+
+### Symbol Info
+
+```text
+GET /info/{symbol}
+```
+
+This endpoint returns basic information about a PSX symbol.
+
+Example:
+
+```text
+https://psx-rest-api.onrender.com/info/HBL
+```
+
+Example response:
+
+```json
+{
+  "symbol": "HBL",
+  "name": "Habib Bank Limited",
+  "sector": "Commercial Banks",
+  "is_etf": false,
+  "is_debt": false
 }
 ```
 
