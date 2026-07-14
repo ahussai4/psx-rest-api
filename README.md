@@ -2,7 +2,29 @@
 
 A simple REST API for fetching Pakistan Stock Exchange historical data.
 
-This project is built with FastAPI.
+This project is built with FastAPI and deployed on Render.
+
+## Live Deployment
+
+The API is publicly available at:
+
+```text
+https://psx-rest-api.onrender.com
+```
+
+Live examples:
+
+```text
+https://psx-rest-api.onrender.com/health
+```
+
+```text
+https://psx-rest-api.onrender.com/symbols?limit=10
+```
+
+```text
+https://psx-rest-api.onrender.com/historical/HBL?limit=5&order=desc
+```
 
 ## Features
 
@@ -30,19 +52,22 @@ psx-rest-api/
 ├── psx_client.py
 ├── requirements.txt
 ├── README.md
+├── Procfile
 └── .gitignore
 ```
 
 ## Install Dependencies
 
+Create and activate a virtual environment, then install the required packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run the API
+## Run the API Locally
 
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 The API will run locally at:
@@ -59,6 +84,12 @@ FastAPI automatically creates interactive documentation here:
 http://127.0.0.1:8000/docs
 ```
 
+For the deployed API:
+
+```text
+https://psx-rest-api.onrender.com/docs
+```
+
 ## Endpoints
 
 ### Home
@@ -70,7 +101,7 @@ GET /
 Example:
 
 ```text
-http://127.0.0.1:8000/
+https://psx-rest-api.onrender.com/
 ```
 
 ### Health Check
@@ -82,7 +113,7 @@ GET /health
 Example:
 
 ```text
-http://127.0.0.1:8000/health
+https://psx-rest-api.onrender.com/health
 ```
 
 Example response:
@@ -105,13 +136,13 @@ This endpoint returns available PSX symbols.
 Example:
 
 ```text
-http://127.0.0.1:8000/symbols
+https://psx-rest-api.onrender.com/symbols
 ```
 
 With limit:
 
 ```text
-http://127.0.0.1:8000/symbols?limit=10
+https://psx-rest-api.onrender.com/symbols?limit=10
 ```
 
 Example response:
@@ -141,13 +172,13 @@ GET /historical/{symbol}
 Example:
 
 ```text
-http://127.0.0.1:8000/historical/HBL
+https://psx-rest-api.onrender.com/historical/HBL
 ```
 
 With filters:
 
 ```text
-http://127.0.0.1:8000/historical/HBL?start=2021-01-01&end=2026-07-13&limit=5&order=desc
+https://psx-rest-api.onrender.com/historical/HBL?start=2021-01-01&end=2026-07-13&limit=5&order=desc
 ```
 
 ## Historical Data Query Parameters
@@ -182,8 +213,26 @@ http://127.0.0.1:8000/historical/HBL?start=2021-01-01&end=2026-07-13&limit=5&ord
 }
 ```
 
+## Deployment
+
+This project is deployed on Render.
+
+The start command used for deployment is:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+This command is also stored in the `Procfile`:
+
+```text
+web: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
 ## Notes
 
 This project is for educational and research purposes.
 
 Data availability depends on the PSX data source.
+
+Free Render services may sleep after periods of inactivity, so the first request can take a little longer.
