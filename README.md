@@ -30,11 +30,16 @@ https://psx-rest-api.onrender.com/latest/HBL
 https://psx-rest-api.onrender.com/historical/HBL?limit=5&order=desc
 ```
 
+```text
+https://psx-rest-api.onrender.com/download/HBL
+```
+
 ## Features
 
 - Fetch historical OHLCV data for PSX symbols
 - List available PSX symbols
 - Fetch the latest available data for a symbol
+- Download historical data as a CSV file
 - Filter historical data by start date and end date
 - Limit the number of returned rows
 - Sort historical data in ascending or descending date order
@@ -252,6 +257,39 @@ https://psx-rest-api.onrender.com/historical/HBL?start=2021-01-01&end=2026-07-13
   ]
 }
 ```
+
+### CSV Download
+
+```text
+GET /download/{symbol}
+```
+
+This endpoint downloads historical OHLCV data for a PSX symbol as a CSV file.
+
+Example:
+
+```text
+https://psx-rest-api.onrender.com/download/HBL
+```
+
+With date filters:
+
+```text
+https://psx-rest-api.onrender.com/download/HBL?start=2021-01-01&end=2026-07-13
+```
+
+The downloaded file will be named:
+
+```text
+HBL_historical_data.csv
+```
+
+## CSV Download Query Parameters
+
+| Parameter | Meaning | Example |
+|---|---|---|
+| `start` | Start date | `2021-01-01` |
+| `end` | End date | `2026-07-13` |
 
 ## Deployment
 
