@@ -23,6 +23,10 @@ https://psx-rest-api.onrender.com/symbols?limit=10
 ```
 
 ```text
+https://psx-rest-api.onrender.com/latest/HBL
+```
+
+```text
 https://psx-rest-api.onrender.com/historical/HBL?limit=5&order=desc
 ```
 
@@ -30,6 +34,7 @@ https://psx-rest-api.onrender.com/historical/HBL?limit=5&order=desc
 
 - Fetch historical OHLCV data for PSX symbols
 - List available PSX symbols
+- Fetch the latest available data for a symbol
 - Filter historical data by start date and end date
 - Limit the number of returned rows
 - Sort historical data in ascending or descending date order
@@ -51,6 +56,7 @@ psx-rest-api/
 ├── main.py
 ├── psx_client.py
 ├── requirements.txt
+├── runtime.txt
 ├── README.md
 ├── Procfile
 └── .gitignore
@@ -103,6 +109,8 @@ Example:
 ```text
 https://psx-rest-api.onrender.com/
 ```
+
+This endpoint returns a basic message and a list of available endpoints.
 
 ### Health Check
 
@@ -163,11 +171,43 @@ Example response:
 }
 ```
 
+### Latest Data
+
+```text
+GET /latest/{symbol}
+```
+
+This endpoint returns the most recent available historical row for a PSX symbol.
+
+Example:
+
+```text
+https://psx-rest-api.onrender.com/latest/HBL
+```
+
+Example response:
+
+```json
+{
+  "symbol": "HBL",
+  "data": {
+    "date": "2026-07-13",
+    "open": 311.79,
+    "high": 315.0,
+    "low": 307.99,
+    "close": 310.93,
+    "volume": 829063
+  }
+}
+```
+
 ### Historical Data
 
 ```text
 GET /historical/{symbol}
 ```
+
+This endpoint returns historical OHLCV data for a PSX symbol.
 
 Example:
 
@@ -227,6 +267,12 @@ This command is also stored in the `Procfile`:
 
 ```text
 web: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+The Python runtime is pinned in `runtime.txt`:
+
+```text
+python-3.12.8
 ```
 
 ## Notes
